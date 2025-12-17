@@ -1,4 +1,5 @@
-![Into pic](Images/churn.png)
+
+<img src="Images/churn.png" style="width:900px; height:550px;">
 
 # SyriaTel Customer Churn Prediction
 

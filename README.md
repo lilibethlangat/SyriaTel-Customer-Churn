@@ -1,55 +1,86 @@
+
+<img src="Images/churn.png" style="width:900px; height:350px;">
+
 # SyriaTel Customer Churn Prediction
 
-## 1. Project Overview
+AUTHOR:   [Lilibeth Chepngetich Langat](mailto:beth13lilib@gmail.com)
 
-This project addresses a critical business challenge: identifying customers who are likely to discontinue their service. By leveraging machine learning, the goal is to predict churn behavior based on usage patterns and service interactions, allowing for targeted retention efforts that safeguard revenue.
+## 1. Overview
 
-## 2. Methodology
+This project develops a predictive classifier to identify customers at high risk of churning from SyriaTel, a telecommunications company. By leveraging machine learning, we move beyond simple historical observation to proactive intervention, allowing the business to anticipate customer departure and implement retention strategies that protect revenue streams.
 
-* **Data Preparation:** Verified data integrity (no missing values present in the dataset).
-* **Feature Selection:** Analyzed feature correlations and removed redundant or low-impact variables to reduce noise and improve model generalization.
-* **Imbalance Handling:** Utilized `class_weight='balanced'` and hyperparameter tuning to ensure the model could effectively identify the minority churn class.
-* **Model Selection:** Evaluated multiple algorithms, ultimately selecting the **Random Forest Classifier** for its superior ability to handle non-linear relationships and its stability against outliers.
+## 2. Business and Data Understanding
 
-## 3. Key Findings: The Drivers of Churn
+**Stakeholder Audience:** Marketing & Retention Teams require lists of "at-risk" individuals for targeted campaigns.
 
-![FEATURE IMPORTANCE](Images/features.png)
+**Executive Leadership:** Seek to understand high-level drivers of customer churn to inform pricing and service policy.
 
-The analysis identified four primary predictors that significantly influence a customer's decision to leave:
+**Data Choice:** The dataset contains customer activity records, including call usage, service interactions, and subscription plans.
 
-* **Customer Service Calls:** The strongest predictor; churn risk increases exponentially after a customer reaches **3 service calls**.
-* **Total Day Minutes & Charges:** High-usage customers are significantly more likely to churn, indicating sensitivity to daytime pricing structures.
-* **International Plan:** Customers with an active international plan churn at a disproportionately higher rate, suggesting a possible lack of competitive value in the current plan structure.
+* **Key Features:** Our analysis identified **International Plan**, **Customer Service Calls**, **Total Day Minutes**, and **Total Day Charge** as the primary drivers of churn.
+* **Data Preparation:** The [Syriatel_dataset](https://www.kaggle.com/datasets/becksddf/churn-in-telecoms-dataset) contained no missing values. We optimized the feature set by dropping redundant variables and low-impact features (such as state) that introduced noise without improving predictive power.
 
-## 4. Final Model Performance (Random Forest)
+## 3. Modeling
+
+### Rationale: Why Machine Learning?
+
+While traditional data analysis can identify that "high-usage customers churn," it struggles to account for the complex, non-linear interactions between multiple variables simultaneously. Machine learning allows us to assign a specific probability of churn to every individual customer by weighing all features together—something simple statistical averages cannot achieve.
+
+### Model Iteration & Reasoning
+
+1. **Baseline (Logistic Regression):** We began with a distance-based model to establish a benchmark. To ensure accuracy, we applied **StandardScaling**, fitting the scaler *only* on the training data to prevent data leakage. While useful, this linear model struggled with the non-linear "breaking points" in customer behavior (e.g., the sudden spike in churn after exactly 3 service calls).
+2. **Refinement (Decision Tree):** We shifted to a tree-based model to better capture these thresholds. We utilized `class_weight='balanced'` to ensure the model did not ignore the minority churn class.
+3. **Final Selection (Random Forest):** The Random Forest was chosen as the best-suited model. By aggregating an ensemble of trees, it reduces the "variance" (overfitting) seen in a single Decision Tree, resulting in a model that generalizes much better to new, unseen customers.
+
+## 4. Evaluation
 
 ![EVALUATION METRICS](Images/evaluate.png)
 
-The Random Forest model was chosen for deployment because it balances the need to catch churners (Recall) with the need to avoid wasting resources on loyal customers (Precision).
+We evaluated our final model using metrics that balance technical precision with business cost-efficiency.
+
+### Classification Metrics (Random Forest)
 
 * **Accuracy:** 94.7%
-* **Precision:** 84.4% (Minimizes "False Alarms" to loyal customers)
-* **Recall:** 80.2% (Successfully captures 4 out of every 5 churners)
+* **Precision:** 84.4%
+* **Recall:** 80.2%
 * **F1-Score:** 82.2%
-* **ROC-AUC:** 0.932 (Excellent ability to distinguish between classes)
+* **ROC-AUC:** 0.932
 
-## 5. Model Context & Applicability
+### Data Science & Business Rationale
 
-### Where to use this model:
+* **Why F1-Score?** Because churners are the minority, "Accuracy" can be misleading. We prioritized the **F1-Score** to ensure we reached a harmonic balance between catching churners and maintaining precision.
+* **Why ROC-AUC?** This measures the model's ability to rank customers correctly by risk. A score of 0.932 indicates an exceptional ability to separate loyal customers from churners across all possible thresholds.
+* **Real-World Implication:** With **84.4% Precision**, SyriaTel avoids "False Alarms", ensuring that expensive retention discounts are not wasted on customers who had no intention of leaving. With **80.2% Recall**, we successfully capture 4 out of 5 potential leavers before they exit.
 
-* **Proactive Retention:** Identifying high-risk customers for monthly loyalty incentives.
-* **Support Prioritization:** Routing customers with high churn probability scores to specialized retention teams.
+## 5. Limitations
 
-### Where NOT to use this model:
+* **Historical Bias:** The model relies on accumulated usage data. It is significantly less accurate for "New Customers" (0–1 months) who have not yet established a behavioral footprint.
+* **Unseen Market Shifters:** The model cannot account for external factors like a competitor launching a major promotion. In production, such "external shocks" could lead to a sudden spike in churn that the model would not predict based on internal data alone.
+* **Feature Dependency:** The high importance of `total_day_charge` means the model is highly sensitive to pricing. If SyriaTel changes its base rates, the model must be retrained immediately, or it will produce inaccurate "ghost" triggers.
 
-* **New Customers:** The model relies on accumulated usage history; it cannot accurately predict behavior for customers with no historical billing data.
-* **Drastic Market Shifts:** If the company changes its base pricing or introduces 5G technology, the model should be retrained to reflect new usage behaviors.
+## 6. Recommendations
 
-## 6. Strategic Recommendations
+![FEATURE IMPORTANCE](Images/features.png)
 
-To achieve target results (lower churn), the business should consider modifying the following "input variables" through policy changes:
+Based on the model's findings, we recommend the following strategic actions:
 
-* **Lowering "Day Charge" Impact:** Introduce a daytime usage cap or flat-rate bundle. By effectively lowering the `total_day_charge` for high-volume users, the model suggests a significant increase in retention.
-* **Capping "Service Call" Friction:** Modify the support workflow so that the `customer_service_calls` counter never reaches 4 without a mandatory resolution audit. Solving the underlying problem early "resets" the primary churn trigger.
-* **International Plan Optimization:** Restructure the plan to include inclusive minutes rather than just a flat access fee, reducing the high correlation between plan ownership and departure.
+* **The "Call-Limit" Protocol:** Since the model shows churn risk spikes after 3 calls, stakeholders should implement a mandatory "Senior Resolution" workflow for any customer reaching their 3rd support interaction. This proactively addresses the `customer_service_calls` trigger.
+* **Day-Usage Incentives:** Marketing should target high-usage customers (those with high `total_day_minutes`) with "Unlimited Day" bundles or flat-rate upgrades to decouple high usage from high churn risk.
+* **International Plan Audit:** The high correlation between the **International Plan** and churn suggests a value-gap. Stakeholders should consider bundling inclusive international data or minutes to make the plan more "sticky."
+* **Deployment:** Integrate the Random Forest probability scores into the CRM. Customers with a probability score > 0.70 should be automatically flagged for a 3-month loyalty bonus offer.
 
+**Data Integrity:** To prevent **Data Leakage**, all preprocessing (Scaling and Feature Selection) was fitted exclusively on the training set. The test data remained "unseen" until the final evaluation to ensure the metrics reported above realistically represent performance on future SyriaTel customers.
+
+## For more Information
+See the full analysis in the [Jupyter notebook](Churn.ipynb) or review this  [presentation](Churn_presentation.pdf)
+
+For more information, contact me at  [Lilibeth Chepngetich Langat](mailto:beth13lilib@gmail.com)
+
+# Repository Structure
+```python
+├── Data
+├── Images
+├── README.md
+├── Churn_presentation.pdf
+└── Churn.ipynb
+```

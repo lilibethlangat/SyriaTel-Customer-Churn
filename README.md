@@ -23,7 +23,7 @@ The analysis identified four primary predictors that significantly influence a c
 
 ## 4. Final Model Performance (Random Forest)
 
-![FEATURE IMPORTANCE](Images/evaluation.png)
+![EVALUATION METRICS](Images/evaluate.png)
 
 The Random Forest model was chosen for deployment because it balances the need to catch churners (Recall) with the need to avoid wasting resources on loyal customers (Precision).
 
